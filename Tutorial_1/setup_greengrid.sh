@@ -47,11 +47,13 @@ apt-get install -y \
 
 # --- 2. Users ----------------------------------------------------------------
 # Low-privilege operational account used by the (fictional) on-call
-# greenhouse technician. Weak, guessable password for lab purposes.
+# greenhouse technician. Weak, dictionary-crackable password (present in
+# rockyou.txt) for lab purposes — consistent with the ISEC3002 lab
+# convention of using genuinely wordlist-crackable credentials.
 if ! id -u ggtech >/dev/null 2>&1; then
     useradd -m -s /bin/bash ggtech
 fi
-echo "ggtech:Sprout2024" | chpasswd
+echo "ggtech:sunshine" | chpasswd
 
 # A second, "normal" low-priv account with a strong password, just for
 # realism (not part of the intended path).
@@ -131,12 +133,14 @@ $DB_USER = "gg_app";
 $DB_PASS = "H0useplant!99";
 $DB_NAME = "greengrid";
 // technician SSH fallback account for on-call access:
-// ggtech / Sprout2024
+// ggtech / sunshine
 ?>
 EOF
 git add config.php.bak
 git commit -q -m "backup config before password rotation (remove before prod!!)"
 # "Forget" to remove it — leave .git world-readable via Apache.
+# Generate dumb-HTTP server info so plain `git clone` works over Apache.
+git update-server-info
 chmod -R o+r "${WEBROOT}/.git"
 
 # Apache config: allow directory listing on /notes and don't block .git
