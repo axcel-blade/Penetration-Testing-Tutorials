@@ -24,3 +24,5 @@ Logs/
 *.log
 nmap_full.txt
 *-git-dump/
+
+CLAUDE.md
