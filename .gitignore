@@ -1,0 +1,28 @@
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+
+# VirtualBox artifacts (VMs, disks, logs) — never commit lab VM state
+*.vdi
+*.vbox
+*.vbox-prev
+*.ova
+*.ovf
+Logs/
+
+# ISOs downloaded per the tutorials
+*.iso
+
+# Local lab output (scan results, dumped repos, etc.) generated while
+# following a walkthrough — not meant to be committed
+*.log
+nmap_full.txt
+*-git-dump/
+
+CLAUDE.md
