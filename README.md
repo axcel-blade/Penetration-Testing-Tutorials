@@ -18,7 +18,8 @@ lab-specific scope details.
 | Lab | What it covers |
 |---|---|
 | [Tutorial_0](Tutorial_0/00-index.md) | Building the base attacker/lab environment: installing VirtualBox, creating an Ubuntu VM, and configuring it with common penetration-testing tools |
-| [Tutorial_1](Tutorial_1/greengrid_walkthrough.md) | GreenGrid Sensor Portal — a vulnerable web app target (`setup_greengrid.sh`) with a three-tier, flag-based walkthrough: enumeration, an exposed `.git` repo leaking credentials, and sudo privilege escalation |
+| [Tutorial_1](Tutorial_1/GreenGrid_Walkthrough.md) | GreenGrid Sensor Portal — a vulnerable web app target (`setup_greengrid.sh`) with a three-tier, flag-based walkthrough: enumeration, an exposed `.git` repo leaking credentials, and sudo privilege escalation |
+| [Tutorial_2](Tutorial_2/BrightSmile_Walkthrough.md) | BrightSmile Dental Clinic — a vulnerable Linux target (`setup_brightsmile.sh`) with a three-tier, flag-based walkthrough: anonymous-FTP information leak, a database-stored SSH key exposed via reused credentials, and a SUID `$PATH`-hijack privilege escalation |
 
 Each `Tutorial_N/` directory is independent — start with `Tutorial_0` if you
 don't yet have a lab environment set up, or jump straight to a later
