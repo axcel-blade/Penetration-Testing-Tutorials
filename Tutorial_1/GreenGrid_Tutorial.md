@@ -25,6 +25,8 @@ explicit authorization to test.
    chmod +x setup_greengrid.sh
    sudo ./setup_greengrid.sh
    ```
+   - `chmod +x`: mark the script executable (required before `./script.sh` will run)
+   - `sudo`: run it as root, since it creates system users and edits services
 4. Snapshot the VM once the script finishes — this is your clean
    restore point.
 5. From your attacker VM (Kali, ParrotOS, etc.), confirm connectivity
@@ -39,6 +41,10 @@ Start with a port scan:
 ```bash
 nmap -sC -sV -p- <target-ip> -oN nmap_full.txt
 ```
+- `-sC`: run Nmap's default script set (banner grabs, common misconfig checks, etc.)
+- `-sV`: probe open ports to detect service/version info (e.g. `Apache httpd 2.4.52`)
+- `-p-`: scan all 65535 TCP ports, not just the default top 1000
+- `-oN nmap_full.txt`: write the results in Nmap's normal (human-readable) format to this file
 
 Expect to see:
 - `22/tcp` — OpenSSH
@@ -49,6 +55,10 @@ Enumerate the web root:
 ```bash
 gobuster dir -u http://<target-ip>/ -w /usr/share/wordlists/dirb/common.txt -x php,bak,txt
 ```
+- `dir`: gobuster's directory/file brute-forcing mode
+- `-u`: target URL to scan
+- `-w`: wordlist of paths to try
+- `-x`: also try each wordlist entry with these file extensions appended (so `config` also tests `config.php`, `config.bak`, `config.txt`)
 
 You should find several interesting paths, including:
 - `/notes/` (directory listing enabled)
@@ -81,6 +91,9 @@ git clone http://<target-ip>/.git/ greengrid-git-dump
 cd greengrid-git-dump
 git log --all --oneline
 ```
+- `git clone`: downloads the full repo (working files + history) into `greengrid-git-dump`
+- `git log --all`: show commits from every branch/ref, not just the currently checked-out one
+- `--oneline`: condense each commit to a single line (short hash + message), easier to scan
 
 **If `git clone` reports "repository not found":** the target's
 `.git/info/refs` wasn't generated. On the target VM, run:
@@ -90,6 +103,8 @@ cd /var/www/html
 sudo git update-server-info
 sudo chmod -R o+r .git
 ```
+- `git update-server-info`: regenerates the `info/refs` file Git's dumb-HTTP protocol needs to serve the repo over plain Apache
+- `chmod -R o+r .git`: recursively (`-R`) grant read permission to others (`o+r`) so Apache's worker process can actually read the directory
 
 Then retry the `git clone` from your attacker machine.
 
@@ -117,6 +132,7 @@ Walk the commit history — you'll find a commit titled something like
 ```bash
 git show <commit-hash>:config.php.bak
 ```
+- `git show <commit>:<path>`: print a file's contents exactly as it existed at that commit, even though it's not present in the current working tree
 
 This reveals:
 - Database credentials (`gg_app` / `H0useplant!99`)
@@ -148,6 +164,10 @@ already:)
 sudo gunzip -k /usr/share/wordlists/rockyou.txt.gz
 hydra -l ggtech -P /usr/share/wordlists/rockyou.txt ssh://<target-ip> -t 4
 ```
+- `gunzip -k`: decompress the file but keep (`-k`) the original `.gz` too, instead of deleting it
+- `-l ggtech`: try this single, known username (lowercase `-l`; uppercase `-L` would take a username *list* instead)
+- `-P <wordlist>`: password list to try against that username
+- `-t 4`: run 4 parallel login attempts at once (higher = faster but noisier/more likely to trip lockouts)
 
 Once logged in as `ggtech`, grab the second flag:
 
@@ -166,6 +186,7 @@ Enumerate your sudo rights:
 ```bash
 sudo -l
 ```
+- `sudo -l`: lists what commands (if any) the current user is allowed to run via `sudo`, without actually running anything
 
 Expected output shows something like:
 
