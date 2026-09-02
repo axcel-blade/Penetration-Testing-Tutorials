@@ -22,7 +22,7 @@ explicit authorization to test.
 2. Copy `setup_greengrid.sh` to the VM.
 3. Run it:
    ```bash
-   chmod +x setup_greengrid.sh
+   sudo chmod +x setup_greengrid.sh
    sudo ./setup_greengrid.sh
    ```
 4. Snapshot the VM once the script finishes — this is your clean
