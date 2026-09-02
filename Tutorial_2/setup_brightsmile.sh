@@ -123,6 +123,12 @@ EOF
 chown -R ftp:ftp /srv/ftp
 chmod -R 755 /srv/ftp
 chmod 644 /srv/ftp/staff_notes/EASY_FLAG.txt /srv/ftp/staff_notes/reminder_sync.sh.bak
+# vsftpd refuses to chroot anonymous users into a directory that is
+# writable by the logged-in user (a hardening check against chroot
+# escapes). The subdirectories can stay owned by ftp:ftp, but the chroot
+# root itself must be owned by root and not writable by ftp.
+chown root:root /srv/ftp
+chmod 755 /srv/ftp
 
 cat > /etc/vsftpd.conf <<'EOF'
 listen=YES
