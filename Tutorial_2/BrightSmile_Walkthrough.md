@@ -311,22 +311,38 @@ id
   you, to confirm the privilege escalation worked.
 
 You should see `uid=0(root) euid=0(root)` — you're now sitting in a full
-root shell.
+root shell. Check `/root` and grab the final flag:
+
+```bash
+ls /root
+cat /root/HARD_FLAG.txt
+```
+
+- `ls /root` — list the contents of root's home directory, now that you have the privileges to read it.
+- `cat /root/HARD_FLAG.txt` — read the flag.
+
+**🚩 HARD_FLAG captured.**
 
 ---
 
 ## Part 6 – Capture the Three Flags
 
-By this point you should have all three:
+By this point you should already have all three, captured as you went:
 
 ```bash
-# Easy - via anonymous FTP, no exploitation
-cat EASY_FLAG.txt          # downloaded in Part 1
+# Easy - via anonymous FTP, no exploitation (Part 1)
+# Intermediate - dropped in recept's home, captured on login (Part 3)
+# Hard - via SUID PATH hijack, as root (Part 5)
+```
 
-# Intermediate - dropped in recept's home, captured in Part 3
-cat /home/recept/INTERMEDIATE_FLAG.txt
+If you want to double check them all in one place, `recept`'s and `root`'s
+copies are only reachable from their respective sessions:
 
-# Hard - via SUID PATH hijack, as root
+```bash
+# from your recept session
+cat ~/INTERMEDIATE_FLAG.txt
+
+# from your root shell (after Part 5)
 cat /root/HARD_FLAG.txt
 ```
 
