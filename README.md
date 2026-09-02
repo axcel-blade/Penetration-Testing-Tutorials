@@ -20,6 +20,7 @@ lab-specific scope details.
 | [Tutorial_0](Tutorial_0/00-index.md) | Building the base attacker/lab environment: installing VirtualBox, creating an Ubuntu VM, and configuring it with common penetration-testing tools |
 | [Tutorial_1](Tutorial_1/greengrid_walkthrough.md) | GreenGrid Sensor Portal — a vulnerable web app target (`setup_greengrid.sh`) with a three-tier, flag-based walkthrough: enumeration, an exposed `.git` repo leaking credentials, and sudo privilege escalation |
 | [Tutorial_2](Tutorial_2/BrightSmile_Walkthrough.md) | BrightSmile Dental Clinic — a vulnerable target (`setup_brightsmile.sh`) with a three-tier, flag-based walkthrough: anonymous FTP enumeration, leaked DB/SSH credentials for lateral movement, and a SUID PATH-hijack privilege escalation |
+| [Tutorial_3](Tutorial_3/Elmridge_Walkthrough.md) | Elmridge Community Library — a vulnerable target (`setup_elmridge.sh`) with a three-tier, flag-based walkthrough: unrestricted file-upload RCE, a base32-encoded credential leaked via a world-readable cron job, and a group-writable root cron script privilege escalation |
 
 Each `Tutorial_N/` directory is independent — start with `Tutorial_0` if you
 don't yet have a lab environment set up, or jump straight to a later
