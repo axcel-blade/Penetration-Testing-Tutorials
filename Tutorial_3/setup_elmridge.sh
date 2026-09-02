@@ -134,6 +134,7 @@ ELM{UNR3STR1CT3D-UPL0AD-1S-N0T-VAL1D4T10N}
 EOF
 chown www-data:www-data /var/backups/library/EASY_FLAG.txt
 chmod 640 /var/backups/library/EASY_FLAG.txt
+chown root:www-data /var/backups/library
 chmod 750 /var/backups/library
 
 # --- 5. Nightly ILL sync cron job (root) ------------------------------------
