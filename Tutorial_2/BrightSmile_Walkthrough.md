@@ -27,7 +27,7 @@ explicit authorization to test.
 2. Copy `setup_brightsmile.sh` to the VM.
 3. Run it:
    ```bash
-   chmod +x setup_brightsmile.sh
+   sudo chmod +x setup_brightsmile.sh
    sudo ./setup_brightsmile.sh
    ```
 4. Snapshot the VM once the script finishes — this is your clean
