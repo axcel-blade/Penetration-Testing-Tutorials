@@ -57,7 +57,7 @@ apt-get install -y \
 if ! id -u recept >/dev/null 2>&1; then
     useradd -m -s /bin/bash recept
 fi
-echo "recept:sunflower1" | chpasswd
+echo "recept:twinkle" | chpasswd
 
 # Clinic system administrator account — the lateral-movement target. No
 # direct password login; reached only via the leaked SSH key found in the
@@ -108,6 +108,19 @@ EOF
 # movement in Part 4 (a *different* copy of the same DB_PASS above,
 # demonstrating credential reuse across the leak).
 mkdir -p /srv/ftp/patient_forms /srv/ftp/staff_notes
+cat > /srv/ftp/patient_forms/README_intake_process.txt <<'EOF'
+BrightSmile Dental Clinic - Patient Intake Process (v3)
+
+1. Print the intake form and have the patient complete it at check-in.
+2. Scan the completed form and drop it in this folder.
+3. Front desk reviews and files scans into the patient record system
+   each evening. Contact the front desk account (user: recept) if a
+   scan goes missing or a form needs to be reprinted.
+
+- Billing contractor: pulls insurance forms from this share weekly.
+- IT contact: owen (dev), for anything system-related.
+EOF
+
 cat > /srv/ftp/staff_notes/EASY_FLAG.txt <<'EOF'
 BSM{4N0NYM0US-FTP-1S-N0T-A-F1L3-SH4R3}
 EOF
@@ -122,7 +135,7 @@ EOF
 
 chown -R ftp:ftp /srv/ftp
 chmod -R 755 /srv/ftp
-chmod 644 /srv/ftp/staff_notes/EASY_FLAG.txt /srv/ftp/staff_notes/reminder_sync.sh.bak
+chmod 644 /srv/ftp/staff_notes/EASY_FLAG.txt /srv/ftp/staff_notes/reminder_sync.sh.bak /srv/ftp/patient_forms/README_intake_process.txt
 # vsftpd refuses to chroot anonymous users into a directory that is
 # writable by the logged-in user (a hardening check against chroot
 # escapes). The subdirectories can stay owned by ftp:ftp, but the chroot
@@ -145,6 +158,9 @@ connect_from_port_20=YES
 chroot_local_user=YES
 secure_chroot_dir=/var/run/vsftpd/empty
 pam_service_name=vsftpd
+pasv_enable=YES
+pasv_min_port=30000
+pasv_max_port=31000
 EOF
 systemctl restart vsftpd
 
@@ -207,12 +223,34 @@ chmod 600 /home/recept/INTERMEDIATE_FLAG.txt
 cat > /tmp/clinic_diag.c <<'EOF'
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+/* Runs a command by PATH lookup via execvp, NOT via system()/popen().
+ * system() always shells out through /bin/sh, and on Ubuntu /bin/sh is
+ * dash, which drops SUID privileges immediately at startup whenever its
+ * effective UID differs from its real UID -- before it even resolves
+ * "whoami" on $PATH. That would silently defeat the intended PATH-hijack
+ * vulnerability. Calling execvp() directly (via a fork so the parent can
+ * continue to the next command) does the PATH lookup itself in-process
+ * and hands off straight to the target binary with no intervening shell,
+ * so an attacker-controlled $PATH entry genuinely inherits the caller's
+ * (root) effective UID -- reproducing a realistic SUID/PATH-hijack bug. */
+static void run_from_path(const char *cmd) {
+    pid_t pid = fork();
+    if (pid == 0) {
+        execlp(cmd, cmd, (char *)NULL);
+        _exit(127); /* only reached if execlp itself fails */
+    } else if (pid > 0) {
+        waitpid(pid, NULL, 0);
+    }
+}
 
 int main() {
     printf("BrightSmile Clinic Diagnostics\n");
     printf("-------------------------------\n");
-    system("whoami");
-    system("uptime");
+    run_from_path("whoami");
+    run_from_path("uptime");
     return 0;
 }
 EOF

