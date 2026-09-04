@@ -20,12 +20,6 @@ legal framing than a typical project.
 
 ## Adding or editing a tutorial
 
-Adding a whole new lab? [NEW_TUTORIAL_PROMPT.md](NEW_TUTORIAL_PROMPT.md) is
-a reusable, parameterized prompt that generates the next `Tutorial_N` in
-this exact style (OS picked at random, vulnerability chain checked against
-prior tutorials so it doesn't repeat) — use it instead of writing one from
-scratch.
-
 - New labs go in a new `Tutorial_N/` directory, `N` incrementing from the
   highest existing tutorial.
 - Follow one of the existing patterns rather than inventing a third:
