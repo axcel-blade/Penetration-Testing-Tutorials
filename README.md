@@ -1,4 +1,4 @@
-# Vulnerable Systems Configuration
+# Penetration Testing Tutorials
 
 A collection of self-contained tutorials for building intentionally
 vulnerable lab VMs, for **authorized security training and CTF-style

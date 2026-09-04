@@ -52,12 +52,15 @@ Put your pentest VM and target VM(s) on the same **Internal Network** or **Host-
      ```bash
      nmap -sV <target-internal-ip>
      ```
+     - `-sV`: probe open ports to detect service/version info, confirming the target is reachable and responding
    - If ping/scan succeeds, both machines are correctly isolated together on the same lab network.
 
 7. **Double-check isolation:** from the target VM, confirm it has no route to the internet (this protects you from accidentally exposing a vulnerable machine):
    ```bash
    ping -c 2 8.8.8.8
    ```
+   - `-c 2`: send only 2 ping packets and stop, instead of pinging forever
+   
    This should fail (timeout) if the target only has an Internal/Host-Only adapter, as intended.
 
 ---
