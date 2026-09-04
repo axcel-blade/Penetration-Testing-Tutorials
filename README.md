@@ -22,6 +22,7 @@ lab-specific scope details.
 | [Tutorial_2](Tutorial_2/BrightSmile_Walkthrough.md) | BrightSmile Dental Clinic — a vulnerable target (`setup_brightsmile.sh`) with a three-tier, flag-based walkthrough: anonymous FTP enumeration, leaked DB/SSH credentials for lateral movement, and a SUID PATH-hijack privilege escalation |
 | [Tutorial_3](Tutorial_3/Elmridge_Walkthrough.md) | Elmridge Community Library — a vulnerable target (`setup_elmridge.sh`) with a three-tier, flag-based walkthrough: unrestricted file-upload RCE, a base32-encoded credential leaked via a world-readable cron job, and a group-writable root cron script privilege escalation |
 | [Tutorial_4](Tutorial_4/Nimbus_Home_Walkthrough.md) | Nimbus Home — a vulnerable smart-home-hub target (`setup_nimbushome.sh`) with a three-tier, flag-based walkthrough: an exposed migration backup in the web root, a base64-encoded credential leaked via a world-readable systemd unit, and a misassigned `cap_setuid` capability privilege escalation |
+| [Tutorial_5](Tutorial_5/Forge_CI_Walkthrough.md) | Forge CI — a vulnerable self-hosted CI target (`setup_forgeci.sh`) with a three-tier, flag-based walkthrough: an unauthenticated debug panel leaking a fallback credential, a hex-encoded deploy key in a world-readable state file, and a writable systemd unit paired with a narrowly scoped sudo grant for privilege escalation |
 
 Each `Tutorial_N/` directory is independent — start with `Tutorial_0` if you
 don't yet have a lab environment set up, or jump straight to a later
