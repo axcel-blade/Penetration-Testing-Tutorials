@@ -45,6 +45,12 @@ editing existing tutorials, and include one in any new tutorial or script.
 - If a lab uses capture-the-flag-style markers (`EASY_FLAG.txt`,
   `INTERMEDIATE_FLAG.txt`, `HARD_FLAG.txt`), keep that naming scheme and
   document the difficulty tiers in the walkthrough.
+- Include a spoiler-style **Flag Hints** section right after the Flags
+  list: one collapsible `<details><summary>Hint: EASY_FLAG</summary>...`
+  block per flag (three total), each giving a nudge toward the relevant
+  misconfiguration/technique without naming the exact file, command, or
+  credential — so a reader can attempt each flag on their own before
+  falling back to the full step-by-step walkthrough that follows.
 - **Target OS:** when the target OS isn't specified, randomly pick either
   Windows or Linux for the new lab (state which one, and that it was
   random, at the top of the walkthrough) rather than defaulting to Ubuntu
@@ -95,6 +101,30 @@ as one factor when there's a genuine choice between equally valid tools.
   Vulnerability Chain, Cleanup.
 - Update `README.md`'s tutorial table whenever a tutorial is added, and
   keep the row order matching `Tutorial_N` numbering.
+
+## Decoding Techniques
+
+Where a lab's chain calls for a leaked or obscured credential (most
+labs' intermediate tier fits this), route it through a genuine decoding
+or offline-cracking step rather than handing it over in plaintext, and
+vary *which* technique is used from one tutorial to the next rather than
+repeating the same encoding every time. Already used in this set —
+check before picking one for a new tutorial:
+- Base32 (Tutorial_3)
+- Base64 (Tutorial_2's DB-stored blob, Tutorial_4's systemd-unit leak)
+- Hex (Tutorial_5's cached deploy key)
+- SHA-512 crypt hash cracking with John/Hashcat (Tutorial_6, Tutorial_7)
+- OpenSSL AES symmetric decryption with a leaked passphrase (Tutorial_8)
+- Zip-password cracking with `zip2john`/`fcrackzip` (Tutorial_10)
+
+Still untapped, good candidates for the next tutorial: ROT13/ROT47,
+URL-encoding (possibly double/nested), Base85/ASCII85, a recoverable
+single-byte or repeating-key XOR, UUencoding, NTLM/MD5/bcrypt hash
+cracking, or a `steghide`/binwalk-style data-hiding technique. Pick the
+one that fits the theme's fiction (e.g. a legacy tool that only speaks
+UUencoding, a "quick obfuscation" someone bolted onto a config file) —
+never force a decoding step where the natural leak would just be
+plaintext.
 
 ## Commits & Git Workflow
 
