@@ -45,6 +45,22 @@ editing existing tutorials, and include one in any new tutorial or script.
 - If a lab uses capture-the-flag-style markers (`EASY_FLAG.txt`,
   `INTERMEDIATE_FLAG.txt`, `HARD_FLAG.txt`), keep that naming scheme and
   document the difficulty tiers in the walkthrough.
+- **Target OS:** when the target OS isn't specified, randomly pick either
+  Windows or Linux for the new lab (state which one, and that it was
+  random, at the top of the walkthrough) rather than defaulting to Ubuntu
+  every time; use whichever OS the user names if they specify one. A
+  Linux target uses a `setup_*.sh` bash script as usual. A Windows target
+  uses a `setup_<name>.ps1` PowerShell script with the same shape
+  (warning banner, abort window, weak-password low-priv accounts via
+  `New-LocalUser`, one initial-access vulnerability, the same three-tier
+  flag structure, `New-NetFirewallRule` scoped to the intended ports) and
+  a walkthrough using Windows-appropriate tooling/reasoning (SMB/RDP/
+  WinRM enumeration, `evil-winrm`/`psexec.py`, unquoted service paths,
+  weak service ACLs, AlwaysInstallElevated, scheduled-task abuse, etc. in
+  place of GTFOBins/sudo/SUID reasoning) while keeping every other
+  structural convention (flag tiers, legal/scope notice, isolated-network
+  requirement, README table update) identical. Keep alternating/randomizing
+  across tutorials rather than letting the set drift to all one OS.
 - Each lab's vulnerability chain (initial access, lateral movement/
   intermediate misconfiguration, privilege escalation) must be an
   **original combination** — cross-check the README table and the other
