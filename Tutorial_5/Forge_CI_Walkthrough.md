@@ -24,6 +24,33 @@ authorization to test.
 - `HARD_FLAG.txt` — found after privilege escalation to root via a
   writable systemd unit combined with a narrowly scoped sudo grant.
 
+**Flag Hints** (try these before reading the full walkthrough):
+
+<details>
+<summary>Hint: EASY_FLAG</summary>
+
+There's a "temporary" status/debug page that was never gated behind a
+login. See what it's willing to tell you without any credentials at
+all.
+</details>
+
+<details>
+<summary>Hint: INTERMEDIATE_FLAG</summary>
+
+The CI runner agent caches something on disk "for tidiness" — encoded,
+not encrypted. Find the cache file and figure out what encoding it's
+using.
+</details>
+
+<details>
+<summary>Hint: HARD_FLAG</summary>
+
+Your pivoted account can write to a systemd unit file it doesn't own
+the process for, and it also has a very narrow, specific sudo grant.
+Think about what changing that unit file lets the *next* sudo'd action
+actually run.
+</details>
+
 ---
 
 ## Part 0 – Build

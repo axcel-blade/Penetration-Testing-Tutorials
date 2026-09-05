@@ -18,6 +18,32 @@ explicit authorization to test.
 - `INTERMEDIATE_FLAG.txt` — found immediately after gaining a low-privilege shell (the real challenge — pivoting through the database to a second account — sets up Part 5, not the flag itself).
 - `HARD_FLAG.txt` — found after privilege escalation to root.
 
+**Flag Hints** (try these before reading the full walkthrough):
+
+<details>
+<summary>Hint: EASY_FLAG</summary>
+
+An FTP service on this box doesn't require a real account. Log in as an
+anonymous user and see what's sitting in the shared folders.
+</details>
+
+<details>
+<summary>Hint: INTERMEDIATE_FLAG</summary>
+
+A "handover" credential got pasted into the app's database and
+base64-encoded "for safety." Once you're in with the FTP-leaked
+password, look for a way to query that database with the same
+credential you already have.
+</details>
+
+<details>
+<summary>Hint: HARD_FLAG</summary>
+
+A diagnostics helper runs as root without a sudo password. Check its
+permission bits closely, then think about what it trusts to find the
+commands it shells out to.
+</details>
+
 ---
 
 ## Part 0 – Build

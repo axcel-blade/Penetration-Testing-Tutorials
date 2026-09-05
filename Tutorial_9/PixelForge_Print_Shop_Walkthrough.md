@@ -23,6 +23,31 @@ authorization to test.
 - `HARD_FLAG.txt` — found after privilege escalation to root via
   `docker`-group Unix-socket abuse.
 
+**Flag Hints** (try these before reading the full walkthrough):
+
+<details>
+<summary>Hint: EASY_FLAG</summary>
+
+The order-status tracker passes your order ID to a local shell script.
+What happens if your "order ID" contains a shell command separator?
+</details>
+
+<details>
+<summary>Hint: INTERMEDIATE_FLAG</summary>
+
+An internal cache/queue service is reachable from your foothold and
+was never given a password. Look through what it's storing — not every
+"job" in the queue is really a print job.
+</details>
+
+<details>
+<summary>Hint: HARD_FLAG</summary>
+
+Check `id` for your pivoted account's group memberships. One of those
+groups grants access to a Unix socket that talks to a daemon running as
+root — think about what that daemon lets you do with a bind mount.
+</details>
+
 ---
 
 ## Part 0 – Build

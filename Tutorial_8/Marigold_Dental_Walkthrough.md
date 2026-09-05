@@ -25,6 +25,33 @@ explicit authorization to test.
 - `HARD_FLAG.txt` — found after privilege escalation to root via an
   `LD_PRELOAD` leak in a sudoers rule.
 
+**Flag Hints** (try these before reading the full walkthrough):
+
+<details>
+<summary>Hint: EASY_FLAG</summary>
+
+The appointment search box builds its database query straight out of
+what you type. Try breaking the query with a single character and see
+what the error message tells you.
+</details>
+
+<details>
+<summary>Hint: INTERMEDIATE_FLAG</summary>
+
+There's a backup file that's genuinely encrypted, sitting right next to
+a document explaining exactly how to reverse that encryption. Read
+before you crack.
+</details>
+
+<details>
+<summary>Hint: HARD_FLAG</summary>
+
+Check `sudo -l` for your pivoted account, paying attention to any
+`Defaults` line as well as the command itself. One environment variable
+in particular controls what gets loaded into a process before it even
+starts running.
+</details>
+
 ---
 
 ## Part 0 – Build
