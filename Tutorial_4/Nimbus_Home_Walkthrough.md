@@ -24,6 +24,32 @@ explicit authorization to test.
 - `HARD_FLAG.txt` — found after privilege escalation to root via a
   misassigned Linux file capability.
 
+**Flag Hints** (try these before reading the full walkthrough):
+
+<details>
+<summary>Hint: EASY_FLAG</summary>
+
+Someone pushed a full configuration backup into the web root "just for
+a day or two." A directory brute-force will find it if it's still
+there.
+</details>
+
+<details>
+<summary>Hint: INTERMEDIATE_FLAG</summary>
+
+A background timer unit is defined in a file that's readable by anyone
+on the system — and unit files can carry more than just "start this
+program" instructions.
+</details>
+
+<details>
+<summary>Hint: HARD_FLAG</summary>
+
+Don't just check for the SUID bit — Linux capabilities can grant
+almost the same power to a binary without ever setting it. See what
+`getcap` turns up.
+</details>
+
 ---
 
 ## Part 0 – Build

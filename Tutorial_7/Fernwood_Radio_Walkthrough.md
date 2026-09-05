@@ -25,6 +25,31 @@ explicit authorization to test.
 - `HARD_FLAG.txt` — found after privilege escalation to root via a
   Python module search-path hijack in a group-writable cron dependency.
 
+**Flag Hints** (try these before reading the full walkthrough):
+
+<details>
+<summary>Hint: EASY_FLAG</summary>
+
+The DJ cover-art uploader rejects a short list of extensions, checked
+exactly as typed. What happens if you change the case, or pick a PHP
+extension that isn't on the list at all?
+</details>
+
+<details>
+<summary>Hint: INTERMEDIATE_FLAG</summary>
+
+Something Fernwood-related exists outside your home directory, left
+over from a page that no longer exists. It's a real password hash, not
+an encoding — you'll need an offline cracking tool.
+</details>
+
+<details>
+<summary>Hint: HARD_FLAG</summary>
+
+A root cron job imports a Python helper module. Check where Python
+looks for that module first, and who's allowed to write there.
+</details>
+
 ---
 
 ## Part 0 – Build

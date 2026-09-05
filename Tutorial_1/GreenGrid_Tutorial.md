@@ -13,6 +13,31 @@ explicit authorization to test.
 - `INTERMEDIATE_FLAG.txt` — found after gaining a low-privilege shell.
 - `HARD_FLAG.txt` — found after privilege escalation to root.
 
+**Flag Hints** (try these before reading the full walkthrough):
+
+<details>
+<summary>Hint: EASY_FLAG</summary>
+
+Directory listing is enabled somewhere off the web root. A directory
+brute-force will turn up a path worth browsing directly.
+</details>
+
+<details>
+<summary>Hint: INTERMEDIATE_FLAG</summary>
+
+The site was deployed straight from a version-control checkout, and the
+metadata directory was never cleaned up. Dig through its commit history
+for anything that looks like a "temporary" backup file.
+</details>
+
+<details>
+<summary>Hint: HARD_FLAG</summary>
+
+Check what your foothold account is allowed to run with elevated
+privileges (`sudo -l`). One of those commands wraps an interactive pager
+— what can a pager do when it's running as root?
+</details>
+
 ---
 
 ## Part 0 – Build

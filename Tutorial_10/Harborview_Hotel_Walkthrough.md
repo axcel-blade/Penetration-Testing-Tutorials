@@ -31,6 +31,32 @@ authorization to test.
 - `HARD_FLAG.txt` — found after privilege escalation to root via a
   SUID-root Python interpreter.
 
+**Flag Hints** (try these before reading the full walkthrough):
+
+<details>
+<summary>Hint: EASY_FLAG</summary>
+
+The staff ID-photo uploader doesn't check what kind of file you send
+it. What happens if the "photo" is actually a script the server knows
+how to run?
+</details>
+
+<details>
+<summary>Hint: INTERMEDIATE_FLAG</summary>
+
+There's an internal file share reachable without a real account, and
+something old is still sitting on it, locked behind a password. That
+password is common enough to be in a wordlist.
+</details>
+
+<details>
+<summary>Hint: HARD_FLAG</summary>
+
+Not every SUID binary was written to be one. Search the filesystem for
+programs that shouldn't have that bit set, especially interpreters that
+could run arbitrary code if they did.
+</details>
+
 ---
 
 ## Part 0 – Build

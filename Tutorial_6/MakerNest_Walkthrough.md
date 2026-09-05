@@ -24,6 +24,33 @@ authorization to test.
 - `HARD_FLAG.txt` — found after privilege escalation to root via a
   tar-wildcard injection in a group-writable archive job.
 
+**Flag Hints** (try these before reading the full walkthrough):
+
+<details>
+<summary>Hint: EASY_FLAG</summary>
+
+The equipment-reservation kiosk has a report-export feature that takes
+a filename straight from the URL. What happens if that filename tries
+to walk outside the reports folder?
+</details>
+
+<details>
+<summary>Hint: INTERMEDIATE_FLAG</summary>
+
+An old admin tools page was retired, but its login file wasn't deleted.
+This one is a real password hash, not an encoding — you'll need an
+offline cracking tool, not a decoder.
+</details>
+
+<details>
+<summary>Hint: HARD_FLAG</summary>
+
+A nightly job archives files with `tar` using a wildcard inside a
+directory your intermediate account can write to. `tar` treats certain
+filenames as command-line flags — what could you name a file to abuse
+that?
+</details>
+
 ---
 
 ## Part 0 – Build

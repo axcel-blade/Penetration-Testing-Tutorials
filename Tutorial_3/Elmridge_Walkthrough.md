@@ -20,6 +20,32 @@ explicit authorization to test.
   pivoting to a local user account.
 - `HARD_FLAG.txt` — found after privilege escalation to root.
 
+**Flag Hints** (try these before reading the full walkthrough):
+
+<details>
+<summary>Hint: EASY_FLAG</summary>
+
+The library-card upload form only checks the file type your browser
+claims to be sending, not what's actually inside the file. What happens
+if you lie about it?
+</details>
+
+<details>
+<summary>Hint: INTERMEDIATE_FLAG</summary>
+
+A cron job leaks something world-readable on a fixed schedule. What it
+leaks isn't hashed — it's just encoded in a way that's easy to reverse
+once you notice the character set.
+</details>
+
+<details>
+<summary>Hint: HARD_FLAG</summary>
+
+Find the root cron job your intermediate account can influence. Who
+else besides root can write to the script — or the directory — it runs
+from?
+</details>
+
 ---
 
 ## Part 0 – Build
