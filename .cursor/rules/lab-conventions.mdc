@@ -61,6 +61,27 @@ editing existing tutorials, and include one in any new tutorial or script.
   structural convention (flag tiers, legal/scope notice, isolated-network
   requirement, README table update) identical. Keep alternating/randomizing
   across tutorials rather than letting the set drift to all one OS.
+
+## Tool Variety
+
+Give the reader a **new-tool experience** on each tutorial rather than
+re-running the same handful of commands every time. Before writing a
+walkthrough, check what the existing `Tutorial_N` walkthroughs already
+lean on (`nmap`, `gobuster`, `hydra`, `John`/`Hashcat` recur since they're
+always-appropriate defaults) and deliberately work in at least one or two
+tools from Kali's broader toolset that haven't already been the star of a
+prior tutorial, wherever they genuinely fit the planted vulnerability
+chain — e.g. `smbclient`/`enum4linux-ng`/`crackmapexec` for SMB, `ffuf`/
+`feroxbuster`/`wfuzz` as gobuster alternatives, `whatweb`/`nikto`/`wpscan`
+for web fingerprinting, `sqlmap` for SQLi, `zip2john`/`fcrackzip`/
+`pdfcrack`/`bkcrack` for format-specific cracking, `msfconsole`/`msfvenom`
+for a Metasploit-driven walkthrough, `evil-winrm`/`psexec.py` for Windows
+targets, `responder`/`impacket` scripts for Windows credential relay/
+abuse, `searchsploit`, `wireshark`/`tcpdump` for traffic analysis, etc.
+Never force a tool where it doesn't fit what the setup script actually
+planted — pick whichever tool is the natural way to exploit that step,
+but treat "was this tool already the highlight of an earlier tutorial"
+as one factor when there's a genuine choice between equally valid tools.
 - Each lab's vulnerability chain (initial access, lateral movement/
   intermediate misconfiguration, privilege escalation) must be an
   **original combination** — cross-check the README table and the other
