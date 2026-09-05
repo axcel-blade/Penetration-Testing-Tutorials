@@ -102,6 +102,64 @@ as one factor when there's a genuine choice between equally valid tools.
 - Update `README.md`'s tutorial table whenever a tutorial is added, and
   keep the row order matching `Tutorial_N` numbering.
 
+## Penetration Technique Variety
+
+Beyond varying tools and encodings, vary the actual **attack techniques**
+(the initial-access vector, the lateral-movement mechanism, and the
+privilege-escalation primitive) so the rotating set gives readers a new
+class of real-world attack to practice each time, not just a new theme
+wrapped around a familiar bug. Before designing a new tutorial's chain,
+check what's already been used and deliberately pick something new for
+at least the initial-access step:
+
+- **Initial access already used:** exposed `.git` repo (T1), anonymous
+  FTP (T2), unrestricted/blacklist-bypassable file upload (T3, T7, T10),
+  exposed config/migration backup in the web root (T4), unauthenticated
+  debug panel (T5), path traversal (T6), SQL injection (T8), OS command
+  injection (T9).
+- **Lateral movement / intermediate misconfiguration already used:**
+  `.git` history leak (T1), DB-stored leaked credential (T2), leaked
+  credential via world-readable cron/systemd/state files (T3, T4, T5),
+  legacy Basic-Auth credential files (T6, T7), an encrypted backup with
+  the key alongside it (T8), an unauthenticated internal service (T9),
+  a guest-accessible file share (T10).
+- **Privilege escalation already used:** sudo NOPASSWD + GTFOBins pivot
+  (T1), custom SUID binary + `$PATH` hijack (T2), group-writable root
+  cron script (T3), misassigned Linux capability (T4), writable systemd
+  unit + narrow sudo (T5), tar-wildcard injection (T6), Python
+  module-search-path hijack (T7), sudoers `LD_PRELOAD` leak (T8),
+  `docker`-group socket abuse (T9), a stray SUID bit on a stock
+  interpreter (T10).
+
+Untapped techniques worth reaching for on future tutorials (pick
+whichever genuinely fits the theme's fiction — don't force one in):
+- **Initial access:** SSRF reaching an internal-only admin API, XXE in
+  an XML-accepting endpoint, insecure deserialization (PHP object
+  injection, a Python `pickle` loader), Server-Side Template Injection
+  (SSTI), an outdated/vulnerable CMS plugin with a known CVE, LFI
+  chained with Apache access-log poisoning, WebDAV with `PUT` enabled,
+  an unauthenticated NoSQL/search datastore (MongoDB, Elasticsearch)
+  exposing data directly.
+- **Lateral movement:** an unauthenticated key-value/secrets store
+  (etcd, Consul, HashiCorp Vault misconfig), SNMP with a default/public
+  community string, a leaked SSH private key via agent forwarding or a
+  world-readable `known_hosts`, a Docker registry pull revealing secrets
+  baked into an image layer, an exposed message queue (RabbitMQ/AMQP)
+  with default credentials.
+- **Privilege escalation:** NFS export with `no_root_squash`, a
+  world-writable `/etc/ld.so.preload` (system-wide, distinct from the
+  sudoers `LD_PRELOAD` leak already used), `disk`/`lxd`/`adm` group
+  abuse (siblings of the `docker`-group technique but mechanically
+  different), a writable PAM configuration, an `at`/`batch` job abuse,
+  or reasoning through a known local-exploit CVE via `searchsploit`
+  against a deliberately outdated package (without literally
+  reproducing a dangerous unpatched kernel exploit on the lab image).
+
+Keep a running mental (or literal, via the README table and setup
+scripts) tally so the set doesn't quietly converge on "just SQLi and
+sudo misconfig" — the goal is breadth of real-world attacker experience
+across the whole rotating set, not just breadth of tools.
+
 ## Decoding Techniques
 
 Where a lab's chain calls for a leaked or obscured credential (most
